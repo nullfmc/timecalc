@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Calc Pro</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { 
+            background: #0a0a0a; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+
+        .calc {
+            background: #171717;
+            padding: 25px;
+            border-radius: 35px;
+            width: 330px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+        }
+
+        .display {
+            background: transparent;
+            color: #fff;
+            text-align: right;
+            padding: 20px 15px;
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            word-wrap: break-word;
+            min-height: 90px;
+            font-weight: 200;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            height: 65px;
+            border-radius: 20px;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #262626;
+            color: white;
+        }
+
+        button:active { transform: scale(0.92); background: #333; }
+
+        .op { background: #333; color: #ff9f0a; font-weight: bold; font-size: 1.6rem; }
+        .special { background: #a5a5a5; color: black; font-weight: bold; }
+        .equal { background: #ff9f0a; color: white; font-weight: bold; font-size: 2rem; grid-column: span 2; }
+        .wide { grid-column: span 2; }
+        .now-btn { grid-column: span 4; background: #222; font-size: 0.9rem; margin-bottom: 15px; height: 45px; border-radius: 12px; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="calc">
+    <div id="display" class="display">0</div>
+    <div class="grid">
+        <button class="now-btn" onclick="addCurrentTime()">сейчас 🕒</button>
+        
+        <button class="special" onclick="clearAll()">AC</button>
+        <button class="special" onclick="backspace()">⌫</button>
+        <button class="special wide" onclick="append(':')">:</button>
+
+        <button onclick="append('7')">7</button>
+        <button onclick="append('8')">8</button>
+        <button onclick="append('9')">9</button>
+        <button class="op" onclick="setOp('-')">−</button>
+
+        <button onclick="append('4')">4</button>
+        <button onclick="append('5')">5</button>
+        <button onclick="append('6')">6</button>
+        <button class="op" onclick="setOp('+')">+</button>
+
+        <button onclick="append('1')">1</button>
+        <button onclick="append('2')">2</button>
+        <button onclick="append('3')">3</button>
+        <button class="op" style="color: #fff; background: #444;" onclick="append('0')">0</button>
+
+        <button class="wide" onclick="append('00')">00</button>
+        <button class="equal" onclick="calculate()">=</button>
+    </div>
+</div>
+
+<script>
+    let display = document.getElementById('display');
+    let currentInput = '0';
+    let firstOperand = '';
+    let operator = null;
+
+    function updateDisplay() {
+        display.innerText = currentInput;
+    }
+
+    function append(val) {
+        if (currentInput === '0' && val !== ':') {
+            currentInput = val;
+        } else {
+            if (val === ':' && currentInput.includes(':') && !operator) return; 
+            if (val === ':' && currentInput.slice(-1) === ':') return;
+            currentInput += val;
+        }
+        updateDisplay();
+    }
+
+    function clearAll() {
+        currentInput = '0';
+        firstOperand = '';
+        operator = null;
+        updateDisplay();
+    }
+
+    function backspace() {
+        if (currentInput.length > 1) {
+            currentInput = currentInput.slice(0, -1);
+        } else {
+            currentInput = '0';
+        }
+        updateDisplay();
+    }
+
+    function addCurrentTime() {
+        const now = new Date();
+        currentInput = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        updateDisplay();
+    }
+
+    function timeToMins(t) {
+        let parts = t.split(':');
+        if (parts.length === 1) return parseInt(parts[0]) * 60;
+        let h = parseInt(parts[0]) || 0;
+        let m = parseInt(parts[1]) || 0;
+        return (h * 60) + m;
+    }
+
+    function minsToTime(m) {
+        let absM = Math.abs(m);
+        let h = Math.floor(absM / 60);
+        let mins = absM % 60;
+        return (m < 0 ? '-' : '') + h + ":" + String(mins).padStart(2, '0');
+    }
+
+    function setOp(op) {
+        firstOperand = currentInput;
+        operator = op;
+        currentInput = '0';
+        updateDisplay();
+    }
+
+    function calculate() {
+        if (!operator || firstOperand === '') return;
+        
+        let m1 = timeToMins(firstOperand);
+        let m2 = timeToMins(currentInput);
+        let resultMins;
+
+        if (operator === '+') resultMins = m1 + m2;
+        if (operator === '-') resultMins = m1 - m2;
+
+        currentInput = minsToTime(resultMins);
+        operator = null;
+        updateDisplay();
+    }
+</script>
+
+</body>
+</html>
